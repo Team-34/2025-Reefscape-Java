@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+    private static RobotContainer instance = new RobotContainer();
+
     private Clock clock = null;
     public T34XboxController ctrl = null;
     public SwerveDrive swerve_drive = null;
@@ -50,6 +52,10 @@ public class RobotContainer {
 
     public ControllerDriveCommand DefaultCommand = null;
 
+    public static RobotContainer getInstance() {
+        return instance;
+    }
+
 
     // // The robot's subsystems and commands are defined here...
     // private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
@@ -59,7 +65,7 @@ public class RobotContainer {
     //     new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
-    public RobotContainer() {
+    private RobotContainer() {
         this.clock = Clock.systemUTC();
         this.swerve_drive = new SwerveDrive();
         this.ctrl = new T34XboxController(0);

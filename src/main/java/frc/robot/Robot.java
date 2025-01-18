@@ -20,23 +20,10 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends TimedRobot {
     private Optional<Command> m_autonomousCommand = Optional.empty();
 
-    private RobotContainer m_robotContainer;
+    private RobotContainer m_robotContainer = RobotContainer.getInstance();
 
     private boolean bypass = false;
 
-
-    /**
-     * This function is run when the robot is first started up and should be used for any
-     * initialization code.
-     */
-    @Override
-    public void robotInit() {
-      // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-      // autonomous chooser on the dashboard.
-      this.m_robotContainer = new RobotContainer();
-
-      this.m_robotContainer.shooter.init();
-    }
 
     /**
      * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -218,20 +205,20 @@ public class Robot extends TimedRobot {
         //Move the arm with the bumpers
           //Right bumper increases angle, left bumper decreases angle
     
-        if (this.m_robotContainer.ctrl.getLeftBumper() && this.m_robotContainer.shooter.usingPIDArmMovement() && !this.m_robotContainer.shooter.isArmAtZero())
+        if (this.m_robotContainer.ctrl.getLeftBumperButton() && this.m_robotContainer.shooter.usingPIDArmMovement() && !this.m_robotContainer.shooter.isArmAtZero())
         {
             this.m_robotContainer.shooter.moveDown();
         }
-        else if (this.m_robotContainer.ctrl.getRightBumper() && !this.m_robotContainer.shooter.usingPIDArmMovement())
+        else if (this.m_robotContainer.ctrl.getRightBumperButton() && !this.m_robotContainer.shooter.usingPIDArmMovement())
         {
             this.m_robotContainer.shooter.runTopArmMotorPercent(0.25);
             this.m_robotContainer.shooter.runBottomArmMotorPercent(0.25);
         }
-        else if (this.m_robotContainer.ctrl.getRightBumper() && this.m_robotContainer.shooter.usingPIDArmMovement())
+        else if (this.m_robotContainer.ctrl.getRightBumperButton() && this.m_robotContainer.shooter.usingPIDArmMovement())
         {
             this.m_robotContainer.shooter.moveUp();
         }
-        else if (this.m_robotContainer.ctrl.getLeftBumper() && !this.m_robotContainer.shooter.usingPIDArmMovement() && !this.m_robotContainer.shooter.isArmAtZero())
+        else if (this.m_robotContainer.ctrl.getLeftBumperButton() && !this.m_robotContainer.shooter.usingPIDArmMovement() && !this.m_robotContainer.shooter.isArmAtZero())
         {
             this.m_robotContainer.shooter.runTopArmMotorPercent(-0.3);
             this.m_robotContainer.shooter.runBottomArmMotorPercent(-0.3);

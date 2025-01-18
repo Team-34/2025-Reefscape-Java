@@ -21,8 +21,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Gyro;
 import frc.robot.Maths;
-import com.studica.frc.*;;
 
 public class SwerveDrive extends SubsystemBase {
     private boolean m_field_oriented = true;
@@ -30,7 +30,7 @@ public class SwerveDrive extends SubsystemBase {
     private double m_speed_scalar = SwerveConstants.FARIS_SPEED_MODE_SCALAR;
 
     private MedianFilter m_filter = null;
-    private AHRS m_gyro = null;
+    private Gyro m_gyro = null;
     private SwerveModule[] m_swerve_modules = null;
     private SwerveDriveKinematics m_swerve_drive_kinematics = null;
     private SwerveDriveOdometry m_swerve_odometry = null;
@@ -38,7 +38,7 @@ public class SwerveDrive extends SubsystemBase {
     public SwerveDrive() {
         this.setName("SwerveDrive");
 
-        this.m_gyro = new AHRS(AHRS.NavXComType.kMXP_SPI, 100);;
+        this.m_gyro = Gyro.get();
         this.m_gyro.reset();
 
         this.m_filter = new MedianFilter(5);
@@ -72,7 +72,7 @@ public class SwerveDrive extends SubsystemBase {
 
         // Load the RobotConfig from the GUI settings. You should probably
         // store this in your Constants file
-        RobotConfig config;
+        RobotConfig config = null;
         try{
             config = RobotConfig.fromGUISettings();
         } catch (Exception e) {

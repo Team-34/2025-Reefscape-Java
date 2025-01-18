@@ -1,14 +1,12 @@
 package frc.robot;
 
-import com.kauailabs.navx.frc.AHRS;
-
-import edu.wpi.first.wpilibj.SPI;
+import com.studica.frc.AHRS;
 
 public class Gyro extends AHRS {
     private static final Gyro instance = new Gyro();
 
     private Gyro() {
-        super(SPI.Port.kMXP);
+        super(NavXComType.kMXP_SPI);
     }
 
     public static Gyro get() {

@@ -92,7 +92,7 @@ public class SwerveModule {
         this.m_cancoder.getConfigurator().refresh(cancoder_config);
 
         // Swerve CANCoder Configuration 
-        cancoder_config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+        cancoder_config.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(1.0);
         cancoder_config.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
 
         this.m_cancoder.getConfigurator().apply(cancoder_config);
@@ -123,8 +123,8 @@ public class SwerveModule {
         drive_config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         drive_config.CurrentLimits.SupplyCurrentLimitEnable = SwerveConstants.DRIVE_ENABLE_CURRENT_LIMIT;
         drive_config.CurrentLimits.SupplyCurrentLimit = SwerveConstants.DRIVE_CONTINUOUS_CURRENT_LIMIT;
-        drive_config.CurrentLimits.SupplyCurrentThreshold = SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT;
-        drive_config.CurrentLimits.SupplyTimeThreshold = SwerveConstants.DRIVE_PEAK_CURRENT_DURATION;
+        drive_config.CurrentLimits.SupplyCurrentLowerLimit = SwerveConstants.DRIVE_PEAK_CURRENT_LIMIT;
+        drive_config.CurrentLimits.SupplyCurrentLowerTime = SwerveConstants.DRIVE_PEAK_CURRENT_DURATION;
         drive_config.Feedback.SensorToMechanismRatio = SwerveConstants.SDSMK4_L1;
         drive_config.Slot0.kP = SwerveConstants.DRIVE_KP;
         drive_config.Slot0.kI = SwerveConstants.DRIVE_KI;
@@ -172,7 +172,7 @@ public class SwerveModule {
         // Modify the desired_state's angle to be the shortest angle between the current and target angle.
         // Reverse direction of drive motor if necessary.
         double rotations = this.m_steer.getPosition().getValueAsDouble();
-        desired_state = SwerveModuleState.optimize(desired_state, Rotation2d.fromRotations(rotations));
+        desired_state.optimize(Rotation2d.fromRotations(rotations));
 
         this.setAngle(desired_state);
         this.setSpeed(desired_state, is_open_loop);
