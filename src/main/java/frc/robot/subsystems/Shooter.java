@@ -6,13 +6,11 @@ import java.time.InstantSource;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkRelativeEncoder;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -36,8 +34,6 @@ public class Shooter {
 
     private SparkMax m_arm_motor_top          = null;
     private SparkMax m_arm_motor_bottom       = null;
-    private RelativeEncoder m_arm_encoder_top    = null;
-    private RelativeEncoder m_arm_encoder_bottom = null;
 
     private SparkClosedLoopController m_arm_pidctrl_top    = null;
     private SparkClosedLoopController m_arm_pidctrl_bottom = null;
@@ -101,20 +97,14 @@ public class Shooter {
         this.m_note_sensor = new DigitalInput(9);
         this.m_arm_sensor  = new DigitalInput(8);
 
-
-
-
-
-
-
         this.clock = clock;
         this.m_current_time = clock.instant();
         this.m_since_run_shooter = clock.instant();
         this.m_time_delta = Duration.ZERO;
         this.m_reset_time = false;
         
-        this.m_arm_encoder_top.setPosition(2.4803999);
-        this.m_arm_encoder_bottom.setPosition(this.m_arm_encoder_top.getPosition());
+        this.m_arm_motor_top.getEncoder().setPosition(2.4803999);
+        this.m_arm_motor_bottom.getEncoder().setPosition(this.m_arm_motor_top.getEncoder().getPosition());
     }
 
     public void runShooterPercent(final double motor_output) {
@@ -222,8 +212,8 @@ public class Shooter {
     }
 
     public void setZero() {
-        this.m_arm_encoder_top.setPosition(0.0);
-        this.m_arm_encoder_bottom.setPosition(0.0);    
+        this.m_arm_motor_top.getEncoder().setPosition(0.0);
+        this.m_arm_motor_bottom.getEncoder().setPosition(0.0);    
     }
 
     public void setSetpoint(final double setpoint) {
@@ -265,10 +255,10 @@ public class Shooter {
     }
 
     public double getTopArmEncoderVal() {
-        return this.m_arm_encoder_top.getPosition();
+        return this.m_arm_motor_top.getEncoder().getPosition();
     }
     public double getBottomArmEncoderVal() { 
-        return this.m_arm_encoder_bottom.getPosition(); 
+        return this.m_arm_motor_bottom.getEncoder().getPosition(); 
     }
 
     public void runTopArmMotorPercent(final double motor_output) { 
