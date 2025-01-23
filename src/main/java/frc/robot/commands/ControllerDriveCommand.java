@@ -14,7 +14,6 @@ import frc.robot.subsystems.SwerveDrive;
 public class ControllerDriveCommand extends Command {
     private SwerveDrive m_swerve_drive = null;
     private T34XboxController m_controller = null;
-    private double m_driving_speed = 0.0;
 
     SlewRateLimiter m_x_limiter = null;
     SlewRateLimiter m_y_limiter = null;
