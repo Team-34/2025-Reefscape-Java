@@ -45,8 +45,8 @@ public class SwerveModule {
     private TalonFX m_steer;
     private CoreCANcoder m_cancoder;
 
-    private VelocityVoltage m_drive_velocity_voltage;
-    private PositionVoltage m_steer_position_voltage;
+    private VelocityVoltage m_drive_velocity_voltage = new VelocityVoltage(0);
+    private PositionVoltage m_steer_position_voltage = new PositionVoltage(0);
 
     /**
      * Constructs a new SwerveModule object and initializes the
