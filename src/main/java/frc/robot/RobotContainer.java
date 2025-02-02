@@ -5,12 +5,13 @@
 package frc.robot;
 
 import frc.robot.commands.ControllerDriveCommand;
+import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SwerveDrive;
 
 import java.time.Clock;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -23,18 +24,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    private static final RobotContainer instance = new RobotContainer();
+    public final ControllerDriveCommand defaultCommand;
 
     private final Clock clock = Clock.systemUTC();
-    private final SendableChooser<String> pathChooser = new SendableChooser<>();
 
-    public final ControllerDriveCommand defaultCommand;
-    private final T34XboxController ctrl;
+    private final CommandXboxController ctrl;
     private final SwerveDrive swerveDrive;
-
-    public static RobotContainer getInstance() {
-        return instance;
-    }
+    private final Climber climber;
+    private final Intake intake;
 
 
     // // The robot's subsystems and commands are defined here...
@@ -45,16 +42,16 @@ public class RobotContainer {
     //     new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
-    private RobotContainer() {
+    public RobotContainer() {
         this.swerveDrive = new SwerveDrive();
-        this.ctrl = new T34XboxController(0);
+        this.ctrl = new CommandXboxController(0);
         this.defaultCommand = new ControllerDriveCommand(this.swerveDrive, this.ctrl, this.clock);
+        this.climber = new Climber();
+        this.intake = new Intake();
         
-        this.ctrl.setAllAxisDeadband(0.2);
         // Configure the trigger bindings
         this.configureBindings();
 
-        this.pathChooser.setDefaultOption("None", "None");
     }
 
     /**
@@ -67,19 +64,17 @@ public class RobotContainer {
      * joysticks}.
      */
     private void configureBindings() {
-      // // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-      // new Trigger(m_exampleSubsystem::exampleCondition)
-      //     .onTrue(new ExampleCommand(m_exampleSubsystem));
+        //Runs algae intake in on A button, spits out on B
+        this.ctrl.a().onTrue(intake.algaeInCommand());
+        this.ctrl.b().onTrue(intake.algaeOutCommand());
 
-      // // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-      // // cancelling on release.
-      // m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+        //Moves the climber up and down on Left Bumper press
+        this.ctrl.leftBumper().onTrue(climber.flipArmCommand());
     }
 
-    public T34XboxController       getController()     { return this.ctrl; }
-    public SwerveDrive             getSwerveDrive()    { return this.swerveDrive; }
-    public SendableChooser<String> getPathChooser()    { return this.pathChooser; }
-    public Command                 getDefaultCommand() { return this.defaultCommand; }
+    public CommandXboxController getController()     { return this.ctrl; }
+    public SwerveDrive           getSwerveDrive()    { return this.swerveDrive; }
+    public Command               getDefaultCommand() { return this.defaultCommand; }
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
