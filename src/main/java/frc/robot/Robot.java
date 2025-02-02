@@ -19,11 +19,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot {
     private Optional<Command> m_autonomousCommand = Optional.empty();
-
     private RobotContainer m_robotContainer = RobotContainer.getInstance();
-
-    private boolean bypass = false;
-
 
     /**
      * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -41,46 +37,11 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
 
         //static std::shared_ptr<t34::SwerveDrive> drive = m_this.m_robotContainer.SwerveDrive;
-        final Gyro gyro = Gyro.get();
         
-        SmartDashboard.putNumber("_Yaw", gyro.getAngle());
+        SmartDashboard.putNumber("_Yaw", Gyro.get().getAngle());
     
-        this.m_robotContainer.swerve_drive.putTelemetry();
-        this.m_robotContainer.shooter.putTelemetry();
-    
-        //Periodics
-        this.m_robotContainer.shooter.periodic();
-        // this.m_robotContainer.climber.periodic();
-        this.m_robotContainer.limelight_util.periodic();
-        //_________________________
-    
-        // Swerve Auto Drive Outputs
-        SmartDashboard.putNumber("Auto drive x: ", this.m_robotContainer.limelight_util.m_swerve_drive_speeds.x);
-        SmartDashboard.putNumber("Auto drive y: ", this.m_robotContainer.limelight_util.m_swerve_drive_speeds.y);
-        SmartDashboard.putNumber("Auto drive r: ", this.m_robotContainer.limelight_util.m_swerve_drive_speeds.r);
-        //_________________________
-    
-    
-        // Misc.
-        SmartDashboard.putNumber("Target ID: ", this.m_robotContainer.limelight_util.getTargetID());
-        SmartDashboard.putNumber("Distance from limelight target (meters): ", this.m_robotContainer.limelight_util.m_math_handler.getDistanceFromTarget());
-        SmartDashboard.putBoolean("Note Sensor detection", this.m_robotContainer.shooter.intakeHasNote());
-        SmartDashboard.putBoolean("Arm Sensor detection", this.m_robotContainer.shooter.isArmAtZero());
-    
-        SmartDashboard.putNumber("Raw Arm Encoder Val: ", this.m_robotContainer.shooter.getTopArmEncoderVal() / Constants.ARM_ENC_CONVERSION_FACTOR);
-    
-        //_________________________
-        /*
-        //checks if the approx. range is nearing 5 meters (the range the LL with pick up an AT before the resolution becomes too low)
-        if (log2( (2.5 / LimelightHelpers::getTA()) - 0.3) >= 5.0) {
-            SmartDashboard.putNumber("Over maximum detection range, current distance is: ", this.m_robotContainer.limelight_util.m_math_handler.GetDistanceFromTarget());
-        }
-        //_________________________*/
-        
-        
-        SmartDashboard.putData("Auto chooser: ", this.m_robotContainer.path_chooser);
-    
-        this.m_robotContainer.limelight_util.m_math_handler.putTelemetry();      
+        this.m_robotContainer.getSwerveDrive().putTelemetry();
+        SmartDashboard.putData("Auto chooser: ", this.m_robotContainer.getPathChooser());    
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -120,25 +81,20 @@ public class Robot extends TimedRobot {
         m_autonomousCommand.ifPresent(cmd -> cmd.cancel());
 
         CommandScheduler.getInstance().setDefaultCommand(
-            this.m_robotContainer.swerve_drive,
-            this.m_robotContainer.DefaultCommand);
+            this.m_robotContainer.getSwerveDrive(),
+            this.m_robotContainer.getDefaultCommand());
     }
 
     /** This function is called periodically during operator control. */
     @Override
     public void teleopPeriodic() {
-        final Gyro gyro = Gyro.get();
-    
-        this.m_robotContainer.traj_math.inputMotorOutputPercent(this.m_robotContainer.shooter.getMaxSpeedPercent());
-    
         // PROCESS CONTROLLER BUTTONS
         // Buttons are implemented this way out of simplicity.
         // Consider using button trigger events with commands instead.
     
         // Assign Back Button to Faris Mode.
-        if (this.m_robotContainer.ctrl.getBackButtonReleased())
-        {
-            this.m_robotContainer.swerve_drive.toggleFarisMode();
+        if (this.m_robotContainer.getController().getBackButtonReleased()) {
+            this.m_robotContainer.getSwerveDrive().toggleFarisMode();
         }
     
         // Assign Start Button to Zeroing Yaw.
@@ -147,118 +103,9 @@ public class Robot extends TimedRobot {
         // at the opposite end of the field and sides as 
         // parallel as possible to the fields sides when this
         // button is pressed/released.
-        if (this.m_robotContainer.ctrl.getStartButtonReleased()) {
-            gyro.zeroYaw();
+        if (this.m_robotContainer.getController().getStartButtonReleased()) {
+            Gyro.get().zeroYaw();
         }
-    
-        // toggle PID vs basic motor output arm movement with the A button
-        if (this.m_robotContainer.ctrl.getYButtonReleased()) { 
-            this.m_robotContainer.arm_angle_setpoint = ((this.m_robotContainer.shooter.getTopArmEncoderVal() + this.m_robotContainer.shooter.getBottomArmEncoderVal()) * 0.5) / Constants.ARM_DEG_SCALAR;
-            this.m_robotContainer.shooter.togglePIDArmMovement();
-        }
-    
-        //if (this.m_robotContainer.ctrl.getXButton() == false && (this.m_robotContainer.ctrl.getRightTriggerAxis() < this.m_robotContainer.ctrl.getRightTriggerDB()))
-        //{
-        //    this.m_robotContainer.shooter.runIntakeMotorPercent(0.0);
-        //}
-    
-        //Run the shooter with the triggers
-          //Right is forward, left is back
-        if (this.m_robotContainer.ctrl.getLeftTriggerAxis() > 0.2)
-        {
-            this.bypass = false;
-            this.m_robotContainer.shooter.runShooterPercent(-(this.m_robotContainer.ctrl.getLeftTriggerAxis()));
-        }
-        else if (this.m_robotContainer.ctrl.getRightTriggerAxis() > 0.2)
-        {
-            this.bypass = true;
-            this.m_robotContainer.shooter.shoot(this.m_robotContainer.ctrl.getRightTriggerAxis());
-        }
-        else
-        {
-            this.bypass = false;
-            this.m_robotContainer.shooter.runShooterPercent(0.0);
-            this.m_robotContainer.shooter.updateShooterClock();
-        }
-    
-        //Set the robot's target mode with the D-Pad
-        switch (this.m_robotContainer.ctrl.getPOV())
-        {
-            case (Constants.POV_UP): //  rest
-                this.m_robotContainer.shooter.configForRest();
-                
-                break;
-            case (Constants.POV_RIGHT): // amp
-                this.m_robotContainer.limelight_util.targetAmp();
-                this.m_robotContainer.shooter.configForAmp();
-                break;
-            case (Constants.POV_DOWN): // note collection
-                
-                this.m_robotContainer.shooter.configForNoteCollection();
-                break;
-            case (Constants.POV_LEFT): // max speed
-                this.m_robotContainer.limelight_util.targetSpeaker();
-                this.m_robotContainer.shooter.configForSpeaker(this.m_robotContainer.traj_math.getArmFiringAngleDeg());
-                break;
-        }
-    
-        //Move the arm with the bumpers
-          //Right bumper increases angle, left bumper decreases angle
-    
-        if (this.m_robotContainer.ctrl.getLeftBumperButton() && this.m_robotContainer.shooter.usingPIDArmMovement() && !this.m_robotContainer.shooter.isArmAtZero())
-        {
-            this.m_robotContainer.shooter.moveDown();
-        }
-        else if (this.m_robotContainer.ctrl.getRightBumperButton() && !this.m_robotContainer.shooter.usingPIDArmMovement())
-        {
-            this.m_robotContainer.shooter.runTopArmMotorPercent(0.25);
-            this.m_robotContainer.shooter.runBottomArmMotorPercent(0.25);
-        }
-        else if (this.m_robotContainer.ctrl.getRightBumperButton() && this.m_robotContainer.shooter.usingPIDArmMovement())
-        {
-            this.m_robotContainer.shooter.moveUp();
-        }
-        else if (this.m_robotContainer.ctrl.getLeftBumperButton() && !this.m_robotContainer.shooter.usingPIDArmMovement() && !this.m_robotContainer.shooter.isArmAtZero())
-        {
-            this.m_robotContainer.shooter.runTopArmMotorPercent(-0.3);
-            this.m_robotContainer.shooter.runBottomArmMotorPercent(-0.3);
-        }
-        else if (!this.m_robotContainer.shooter.usingPIDArmMovement())
-        {
-            this.m_robotContainer.shooter.runTopArmMotorPercent(0.0);
-            this.m_robotContainer.shooter.runBottomArmMotorPercent(0.0);
-        }
-    
-        //Run intake backward with the X button, forward with A button
-        if (this.m_robotContainer.ctrl.getXButton())
-        {
-            this.m_robotContainer.shooter.runIntakeMotorPercent(-0.7);
-        }
-        else if (this.m_robotContainer.ctrl.getAButton())
-        {
-            this.m_robotContainer.shooter.runIntakeMotorPercent(0.7, this.bypass);
-        }
-        else
-        {
-            if (!this.bypass)
-                this.m_robotContainer.shooter.runIntakeMotorPercent(0.0, this.bypass);
-        }
-    
-        //if (this.m_robotContainer.ctrl.getYButton()) // run swerve automatically using the limelight with the Y button
-        //{
-        //  frc2::Command([this]
-        //  {
-        //      this.m_robotContainer.swerve_drive->Drive(
-        //          frc::Translation2d(
-        //              units::meter_t(this.m_robotContainer.limelight_util.m_swerve_drive_speeds.x),
-        //              units::meter_t(this.m_robotContainer.limelight_util.m_swerve_drive_speeds.y)
-        //              ), this.m_robotContainer.limelight_util.m_swerve_drive_speeds.r
-        //      );
-    //
-        //  }).Schedule();
-        //}
-    
-        this.m_robotContainer.shooter.periodic();
     }
 
     @Override

@@ -5,8 +5,6 @@
 package frc.robot;
 
 import frc.robot.commands.ControllerDriveCommand;
-import frc.robot.subsystems.LimelightUtil;
-import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SwerveDrive;
 
 import java.time.Clock;
@@ -25,32 +23,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    private static RobotContainer instance = new RobotContainer();
+    private static final RobotContainer instance = new RobotContainer();
 
-    private Clock clock = null;
-    public T34XboxController ctrl = null;
-    public SwerveDrive swerve_drive = null;
+    private final Clock clock = Clock.systemUTC();
+    private final SendableChooser<String> pathChooser = new SendableChooser<>();
 
-    public Shooter shooter = null;
-    // public Climber climber = null;
-    public TrajMath traj_math = null;
-    public LimelightUtil limelight_util = null;
-
-    public double arm_angle_setpoint;
-
-    public double auto_start_dist_1;
-    public double auto_start_dist_2;
-    public double auto_end_dist_1;
-    public double auto_end_dist_2;
-    public double auto_current_dist;
-    public boolean auto_finished_driving_1;
-    public boolean auto_finished_driving_2;
-    public boolean auto_finished_aiming;
-    public boolean auto_finished_shooting;
-
-    public SendableChooser<String> path_chooser = null;
-
-    public ControllerDriveCommand DefaultCommand = null;
+    public final ControllerDriveCommand defaultCommand;
+    private final T34XboxController ctrl;
+    private final SwerveDrive swerveDrive;
 
     public static RobotContainer getInstance() {
         return instance;
@@ -66,56 +46,15 @@ public class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     private RobotContainer() {
-        this.clock = Clock.systemUTC();
-        this.swerve_drive = new SwerveDrive();
+        this.swerveDrive = new SwerveDrive();
         this.ctrl = new T34XboxController(0);
-        this.shooter = new Shooter(this.clock);
-        // this.climber = new Climber();
-        this.traj_math = new TrajMath(
-            11.884 * 2, //14.062,
-            1.9815,
-            1.435,
-            0.2688,
-            ((this.shooter.getTopArmEncoderVal() + this.shooter.getBottomArmEncoderVal()) * 0.5) / Constants.ARM_DEG_SCALAR,
-            30.0
-        );
-        this.limelight_util = new LimelightUtil(
-            this.traj_math,
-            LimelightUtil.TargetMode.kSpeaker
-        );
-        this.arm_angle_setpoint = 90.0;
-        this.auto_start_dist_1 = 0.0;
-        this.auto_end_dist_1 = 0.0;
-        this.auto_start_dist_2 = 0.0;
-        this.auto_end_dist_2 = 0.0;
-        this.auto_finished_driving_1 = false;
-        this.auto_finished_aiming = true;
-        this.auto_finished_driving_2 = true;
-        this.auto_finished_shooting = true;
-        this.DefaultCommand = new ControllerDriveCommand(this.swerve_drive, this.ctrl, this.clock);
+        this.defaultCommand = new ControllerDriveCommand(this.swerveDrive, this.ctrl, this.clock);
         
         this.ctrl.setAllAxisDeadband(0.2);
         // Configure the trigger bindings
         this.configureBindings();
 
-        this.path_chooser.setDefaultOption("None", "None");
-        this.path_chooser.addOption("Faris room path", "TestingPathFarisRoom");
-    
-        this.path_chooser.addOption("Start at left, score 2 points", "Left_Score1_NoAmp_MoveOut");
-        this.path_chooser.addOption("Start at left, score 3 points", "Left_Score2_NoAmp_MoveOut");
-        this.path_chooser.addOption("Start at left, score 4 points", "Left_Score3_NoAmp_MoveOut");
-    
-        this.path_chooser.addOption("Start at mid, score 2 points", "Mid_Score1_NoAmp_MoveOut");
-        this.path_chooser.addOption("Start at mid, score 3 points", "Mid_Score2_NoAmp_MoveOut");
-        this.path_chooser.addOption("Start at mid, score 4 points", "Mid_Score3_NoAmp_MoveOut");
-    
-        this.path_chooser.addOption("Start at right, score 2 points", "Right_Score1_NoAmp_MoveOut");
-        this.path_chooser.addOption("Start at right, score 3 points", "Right_Score2_NoAmp_MoveOut");
-        this.path_chooser.addOption("Start at right, score 4 points", "Right_Score3_NoAmp_MoveOut");
-    
-        this.path_chooser.addOption("Start at left, score in amp", "Left_Score0_YesAmp_MoveAuto");
-        this.path_chooser.addOption("Start at mid, score in amp", "Middle_Score0_YesAmp_MoveAuto");
-        this.path_chooser.addOption("Start at left, score in amp", "Right_Score0_YesAmp_MoveAuto");
+        this.pathChooser.setDefaultOption("None", "None");
     }
 
     /**
@@ -137,6 +76,11 @@ public class RobotContainer {
       // m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
     }
 
+    public T34XboxController       getController()     { return this.ctrl; }
+    public SwerveDrive             getSwerveDrive()    { return this.swerveDrive; }
+    public SendableChooser<String> getPathChooser()    { return this.pathChooser; }
+    public Command                 getDefaultCommand() { return this.defaultCommand; }
+
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
@@ -147,8 +91,8 @@ public class RobotContainer {
         // return Autos.exampleAuto(m_exampleSubsystem);
 
         return new InstantCommand(() -> {
-          this.swerve_drive.drive(new Translation2d(0.0, -1.0), 0.0);
-        }, this.swerve_drive);
+          this.swerveDrive.drive(new Translation2d(0.0, -1.0), 0.0);
+        }, this.swerveDrive);
 
         // final String path_file_name = this.path_chooser.getSelected();
         // final PathPlannerPath path = PathPlannerPath.fromPathFile(path_file_name);

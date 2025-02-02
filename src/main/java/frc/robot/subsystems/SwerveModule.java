@@ -19,22 +19,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SwerveModule {
-    private static final double TWO_PI = 2 * Math.PI;
-
-    // getRotations
-    private static double radiansToRotations(final double radians) {
-        return radians / TWO_PI;
-    }
-    
-    private static double degreesToRotations(final double degrees) {
-        return radiansToRotations(Math.toRadians(degrees)); 
-    }
-    
-    // fromRotations
-    private static double rotationsToRadians(final double rotations) {
-        return rotations * TWO_PI; 
-    }
-
     public static double rpmToMechanism(final double rpm, final double gear_ratio) {
         final double scalar = 2048.0 / 600.0;
         return (rpm * gear_ratio) * scalar; 
@@ -60,10 +44,9 @@ public class SwerveModule {
     private TalonFX m_drive;
     private TalonFX m_steer;
     private CoreCANcoder m_cancoder;
-    private Rotation2d m_last_angle;
 
-    private VelocityVoltage m_drive_velocity_voltage;
-    private PositionVoltage m_steer_position_voltage;
+    private VelocityVoltage m_drive_velocity_voltage = new VelocityVoltage(0);
+    private PositionVoltage m_steer_position_voltage = new PositionVoltage(0);
 
     /**
      * Constructs a new SwerveModule object and initializes the
@@ -135,8 +118,6 @@ public class SwerveModule {
         drive_configurator.setPosition(0.0);
         
         drive_configurator.apply(drive_config);
-
-        this.m_last_angle = this.getState().angle;
 
         this.resetToAbsolute();        
     }
@@ -230,8 +211,6 @@ public class SwerveModule {
         double rotations = angle.getRotations();
         PositionVoltage positionVoltage = this.m_steer_position_voltage.withPosition(rotations);
         this.m_steer.setControl(positionVoltage);
-//        m_last_angle = frc::Rotation2d(units::radian_t(absAngle));
-        this.m_last_angle = angle;
     }
 
     /**
