@@ -7,7 +7,6 @@ package frc.robot;
 import java.util.Optional;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -18,8 +17,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * project.
  */
 public class Robot extends TimedRobot {
-    private Optional<Command> m_autonomousCommand = Optional.empty();
-    private RobotContainer m_robotContainer = RobotContainer.getInstance();
+    private final RobotContainer robotContainer = new RobotContainer();
+    private Optional<Command> autonomousCommand = Optional.empty();
 
     /**
      * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -30,18 +29,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotPeriodic() {
-        // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-        // commands, running already-scheduled commands, removing finished or interrupted commands,
-        // and running subsystem periodic() methods.  This must be called from the robot's periodic
-        // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
-
-        //static std::shared_ptr<t34::SwerveDrive> drive = m_this.m_robotContainer.SwerveDrive;
-        
-        SmartDashboard.putNumber("_Yaw", Gyro.get().getAngle());
-    
-        this.m_robotContainer.getSwerveDrive().putTelemetry();
-        SmartDashboard.putData("Auto chooser: ", this.m_robotContainer.getPathChooser());    
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -51,18 +39,15 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledPeriodic() {}
 
+    @Override
+    public void disabledExit() {}
+
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
-        Gyro.get().zeroYaw();
-
-        m_autonomousCommand = Optional.ofNullable(this.m_robotContainer.getAutonomousCommand());
-
-        // schedule the autonomous command (example)
-        // if (m_autonomousCommand != null) {
-        //     m_autonomousCommand.schedule();
-        // }
-        m_autonomousCommand.ifPresent(cmd -> cmd.schedule());
+        this.autonomousCommand = Optional.ofNullable(this.robotContainer.getAutonomousCommand());
+        // this.autonomousCommand.ifPresent(cmd -> cmd.schedule());
+        this.autonomousCommand.ifPresent(Command::schedule);
     }
 
     /** This function is called periodically during autonomous. */
@@ -70,43 +55,24 @@ public class Robot extends TimedRobot {
     public void autonomousPeriodic() {}
 
     @Override
+    public void autonomousExit() {}
+
+    @Override
     public void teleopInit() {
-        // This makes sure that the autonomous stops running when
-        // teleop starts running. If you want the autonomous to
-        // continue until interrupted by another command, remove
-        // this line or comment it out.
-        // if (m_autonomousCommand != null) {
-        //     m_autonomousCommand.cancel();
-        // }
-        m_autonomousCommand.ifPresent(cmd -> cmd.cancel());
+        // this.autonomousCommand.ifPresent(cmd -> cmd.cancel());
+        this.autonomousCommand.ifPresent(Command::cancel);
 
         CommandScheduler.getInstance().setDefaultCommand(
-            this.m_robotContainer.getSwerveDrive(),
-            this.m_robotContainer.getDefaultCommand());
+            this.robotContainer.getSwerveDrive(),
+            this.robotContainer.getDefaultCommand());
     }
 
     /** This function is called periodically during operator control. */
     @Override
-    public void teleopPeriodic() {
-        // PROCESS CONTROLLER BUTTONS
-        // Buttons are implemented this way out of simplicity.
-        // Consider using button trigger events with commands instead.
-    
-        // Assign Back Button to Faris Mode.
-        if (this.m_robotContainer.getController().getBackButtonReleased()) {
-            this.m_robotContainer.getSwerveDrive().toggleFarisMode();
-        }
-    
-        // Assign Start Button to Zeroing Yaw.
-        // Note: This is for emergency use only!
-        // The robot should be oriented with the front pointed 
-        // at the opposite end of the field and sides as 
-        // parallel as possible to the fields sides when this
-        // button is pressed/released.
-        if (this.m_robotContainer.getController().getStartButtonReleased()) {
-            Gyro.get().zeroYaw();
-        }
-    }
+    public void teleopPeriodic() {}
+
+    @Override
+    public void teleopExit() {}
 
     @Override
     public void testInit() {
@@ -117,6 +83,9 @@ public class Robot extends TimedRobot {
     /** This function is called periodically during test mode. */
     @Override
     public void testPeriodic() {}
+
+    @Override
+    public void testExit() {}
 
     /** This function is called once when the robot is first started up. */
     @Override

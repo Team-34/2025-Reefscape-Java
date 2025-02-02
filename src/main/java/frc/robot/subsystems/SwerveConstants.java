@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.time.Duration;
+
 public class SwerveConstants {
     // Left Forward Swerve Module
     public static final int ID_LEFT_FWD_DRIVE     = 20;
@@ -73,7 +75,7 @@ public class SwerveConstants {
     public static final double  TURNING_RADIUS_METERS                     = Math.sqrt(Math.pow(FRAME_LENGTH / 2.0, 2.0) + Math.pow(FRAME_WIDTH / 2.0, 2.0));
     public static final double  STEER_TELEOP_MAX_SPEED_RADIAN_PER_SECOND  = 1.5 / TURNING_RADIUS_METERS;
 
-    public static final double  FARIS_SPEED_MODE_SCALAR  = 0.2; // Pecent. Should be between 0.1 and 1.0
-    public static final double  ZERO_SWERVE_TIME_SECONDS = 5.0;
+    public static final double   FARIS_SPEED_MODE_SCALAR  = 0.2; // Pecent. Should be between 0.1 and 1.0
+    public static final Duration ZERO_SWERVE_TIME         = Duration.ofSeconds(5);
     
 }
